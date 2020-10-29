@@ -8,6 +8,7 @@ Written By:
 Submitted on: 
 -------------------------------------------------------------------------------*/
 
+#include <sys/wait.h>
 #include "wrappers.h"
 
 #define   READ_END	0

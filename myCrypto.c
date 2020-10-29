@@ -7,7 +7,7 @@ Written By:
      1- Ryan Lewis
      2- Martin Quezada
      
-Submitted on: 
+Submitted on: 11/1/2020
 ----------------------------------------------------------------------------*/
 
 #include "myCrypto.h"
@@ -183,7 +183,8 @@ int decryptFile(int fd_in, int fd_out, unsigned char *key, unsigned char *iv)
 {
     static uint8_t cipherText[CIPHER_LEN_MAX];
     // EVP docs state that up to CIPHER_LEN_MAX + cipher_block_size - 1 can be written by update
-    static uint8_t decryptedText[DECRYPTED_LENmAX];
+    // DECRYPTED_LENmAX ??
+    static uint8_t decryptedText[CIPHER_LEN_MAX];
     int status;
     unsigned len = 0, decryptedLen = 0;
 
@@ -311,39 +312,55 @@ size_t fileDigest(int fd_in, int fd_out, uint8_t *digest)
 // PA-03
 //***********************************************************************
 
+/* Sends the # of bytes, followed by the bytes themselves of a BIGNUM's
+   value to file descriptor fd_out
+   Returns 1 on success, 0 on failure */
 int BN_write_fd( int fd_out  , const BIGNUM *bn ) {
-    // Sends the # of bytes, followed by the bytes themselves of a BIGNUM's
-    // value to file descriptor fd_out
-    // Returns 1 on success, 0 on failure
+    
+    // TODO
     return 0;
 }
 
+/* Read the # of bytes, then the bytes themselves of a BIGNUM's value from
+   file descriptor fd_in
+   Returns: a newly-created BIGNUM, which should be freed later by the caller
+            or NULL on failure */
 BIGNUM *BN_read_fd ( int fd_in ) {
-    // Read the # of bytes, then the bytes themselves of a BIGNUM's value from
-    // file descriptor fd_in
-    // Returns: a newly-created BIGNUM, which should be freed later by the caller
-    //          NULL on failure
+    
+    // TODO
     return NULL;
 }
 
+/* Returns a newly-created random BIGNUM such that: 1 < BN's value < (p-1) */
 BIGNUM *BN_myRandom( const BIGNUM *p ) {
-    // Returns a newly-created random BIGNUM such that: 1 < BN's value < (p-1)
-    return NULL;
+    
+    BIGNUM *max = BN_new();
+    BIGNUM *rnd = BN_new();
+
+    BN_copy( max, p );
+    BN_sub_word( max, 3 );
+    BN_rand_range( rnd, max );
+    BN_add_word( rnd, 2 );
+
+    BN_clear_free( max );
+    return rnd;
 }
 
+/* Use the prime 'q', the primitive root 'gen,' and the private 'x' to
+   compute the Elgamal signature (r,s) on the 'len'-byte long 'digest' */
 void elgamalSign( const uint8_t *digest , int len ,  
                      const BIGNUM *q , const BIGNUM *gen , const BIGNUM *x , 
                      BIGNUM *r , BIGNUM *s , BN_CTX *ctx ) {
-    // Use the prime 'q', the primitive root 'gen,' and the private 'x' to
-    // compute the Elgamal signature (r,s) on the 'len'-byte long 'digest'
+    // TODO
 }
 
+/* Use the prime 'q', the primitive root 'gen', and the public 'y' to
+   validate the Elgamal signature (r,s) on the 'len'-byte long 'digest'
+   Return 1 if valid, 0 otherwise */
 int elgamalValidate( const uint8_t *digest , int len ,  
                   const BIGNUM *q , const BIGNUM *gen , const BIGNUM *y , 
                   BIGNUM *r , BIGNUM *s , BN_CTX *ctx ) {
-    // Use the prime 'q', the primitive root 'gen', and the public 'y' to
-    // validate the Elgamal signature (r,s) on the 'len'-byte long 'digest'
-    // Return 1 if valid, 0 otherwise
+    // TODO
     return 0;
 }
 
