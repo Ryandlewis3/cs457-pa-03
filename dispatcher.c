@@ -1,17 +1,12 @@
 /*-------------------------------------------------------------------------------
-PA-03:  Big Integer Arithmetic & Elgamal Digital Signature
+PA-03: Messaage Digest & Signature using Pipes
 
 FILE:   dispatcher.c
 
 Written By: 
-     1- Dr. Mohamed Aboutabl
+     1- Mohamed Aboutabl
 Submitted on: 
 -------------------------------------------------------------------------------*/
-
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
 
 #include "wrappers.h"
 
@@ -23,17 +18,15 @@ Submitted on:
 int main( int argc , char *argv[] )
 {
     pid_t  amalPID , basimPID ; 
-    int    AtoB_ctrl[2] , AtoB_data[2] /*, BtoA_ctrl[2]*/ ;  // Amal to Basim control and data pipes
-    char   arg1[20] , arg2[20] , arg3[20] ;
+    int    AtoB_ctrl[2] , AtoB_data[2] ;  // Amal to Basim control and data pipes
+    char   arg1[20] , arg2[20] ;
     
     Pipe( AtoB_ctrl ) ;  // create pipe for Amal-to-Basim control
     Pipe( AtoB_data ) ;  // create pipe for Amal-to-Basim data
-    //Pipe( BtoA_ctrl ) ;  // create pipe for Basim-to-Amal control
 
-    printf("\nDispatcher started and created these pipes\n") ;
+    printf("\nDispatcher started and created both pipes\n") ;
     printf("Amal-to-Basim control pipe: read=%d  write=%d\n", AtoB_ctrl[READ_END] , AtoB_ctrl[WRITE_END] ) ;
     printf("Amal-to-Basim data    pipe: read=%d  write=%d\n", AtoB_data[READ_END] , AtoB_data[WRITE_END] ) ;
-    //printf("Basim-to-Amal control pipe: read=%d  write=%d\n", BtoA_ctrl[READ_END] , BtoA_ctrl[WRITE_END] ) ;
 
     // Create both child processes:
     amalPID = Fork() ;
@@ -41,18 +34,16 @@ int main( int argc , char *argv[] )
     {    
         // This is the Amal process.
         // Amal will not use these ends of the pipes, decrement their 'count'
-        close( AtoB_ctrl[READ_END ] ) ;
-        close( AtoB_data[READ_END ] ) ;
-        //close( BtoA_ctrl[WRITE_END] ) ;
+        close( AtoB_ctrl[READ_END]  ) ;
+        close( AtoB_data[READ_END]  ) ;
         
         // Prepare the file descriptors as args to Amal
         snprintf( arg1 , 20 , "%d" , AtoB_ctrl[WRITE_END] ) ;
         snprintf( arg2 , 20 , "%d" , AtoB_data[WRITE_END] ) ;
-        //snprintf( arg3 , 20 , "%d" , BtoA_ctrl[READ_END ] ) ;
         
         // Now, Start Amal
         char * cmnd = "./amal/amal" ;
-        execlp( cmnd , "Amal" , arg1 , arg2 /*, arg3*/ , NULL );
+        execlp( cmnd , "Amal" , arg1 , arg2 , NULL );
 
         // the above execlp() only returns if an error occurs
         perror("ERROR starting Amal" );
@@ -67,15 +58,13 @@ int main( int argc , char *argv[] )
             // Basim will not use these ends of the pipes, decrement their 'count'
             close( AtoB_ctrl[WRITE_END] ) ;
             close( AtoB_data[WRITE_END] ) ;
-            //close( BtoA_ctrl[READ_END ] ) ;
             
             // Prepare the file descriptors as args to Basim
-            snprintf( arg1 , 20 , "%d" , AtoB_ctrl[READ_END ] ) ;
-            snprintf( arg2 , 20 , "%d" , AtoB_data[READ_END ] ) ;
-            //snprintf( arg3 , 20 , "%d" , BtoA_ctrl[WRITE_END] ) ;
+            snprintf( arg1 , 20 , "%d" , AtoB_ctrl[READ_END] ) ;
+            snprintf( arg2 , 20 , "%d" , AtoB_data[READ_END] ) ;
 
             char * cmnd = "./basim/basim" ;
-            execlp( cmnd , "Basim" , arg1 , arg2 , /*arg3 ,*/ NULL );
+            execlp( cmnd , "Basim" , arg1 , arg2 , NULL );
 
             // the above execlp() only returns if an error occurs
             perror("ERROR starting Basim" ) ;
@@ -88,14 +77,19 @@ int main( int argc , char *argv[] )
             close( AtoB_ctrl[READ_END]  );   
             close( AtoB_data[WRITE_END] ); 
             close( AtoB_data[READ_END]  );   
-            //close( BtoA_ctrl[WRITE_END] ); 
-            //close( BtoA_ctrl[READ_END]  );   
 
             printf("\nDispatcher is now waiting for Amal to terminate\n") ;
-            waitpid( amalPID , NULL , 0 ) ;
+			int  exitStatus ;
+            waitpid( amalPID , &exitStatus , 0 ) ;
+            printf("\nAmal terminated ... "  ) ;
+			if (  WIFEXITED( exitStatus ) )
+                    printf(" with status =%d\n" , WEXITSTATUS(exitStatus ) ) ;
 
             printf("\nDispatcher is now waiting for Basim to terminate\n") ;
-            waitpid( basimPID , NULL , 0 ) ;
+            waitpid( basimPID , &exitStatus , 0 ) ;
+            printf("\nBasim terminated ... " ) ;
+			if (  WIFEXITED( exitStatus ) )
+                    printf(" with status =%d\n" , WEXITSTATUS(exitStatus ) ) ;
 
             printf("\nThe Dispatcher process has terminated\n") ;     
         }
